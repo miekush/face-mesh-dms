@@ -1,0 +1,35 @@
+import cv2
+import mediapipe as mp
+mp_drawing = mp.solutions.drawing_utils
+mp_drawing_styles = mp.solutions.drawing_styles
+mp_face_mesh = mp.solutions.face_mesh
+
+# For static images:
+IMAGE_FILES = ['test.jpg']
+drawing_spec = mp_drawing.DrawingSpec(thickness=1, circle_radius=1)
+with mp_face_mesh.FaceMesh(
+    static_image_mode=True,
+    max_num_faces=1,
+    refine_landmarks=True,
+    min_detection_confidence=0.5) as face_mesh:
+  for idx, file in enumerate(IMAGE_FILES):
+    image = cv2.imread(file)
+    # Convert the BGR image to RGB before processing.
+    results = face_mesh.process(cv2.cvtColor(image, cv2.COLOR_BGR2RGB))
+    # Print and draw face mesh landmarks on the image.
+    if not results.multi_face_landmarks:
+      continue
+    annotated_image = image.copy()
+
+    for face in results.multi_face_landmarks:
+        for landmark in face.landmark:
+            #get image size info
+            shape = annotated_image.shape
+            image_h = shape[0]
+            image_w = shape[1]
+            #extract landmark coordinate and convert using image size
+            x = int(landmark.x * image_w)
+            y = int(landmark.y * image_h)
+            #draw circle
+            cv2.circle(annotated_image, (x, y), radius=5, color=(255, 0, 0), thickness=5)
+        cv2.imwrite('annotated_image' + str(idx) + '.jpg', annotated_image)
